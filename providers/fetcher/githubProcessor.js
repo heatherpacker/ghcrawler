@@ -306,6 +306,7 @@ class GitHubProcessor {
       // link to the relate issue and its comments.
       request.linkResource('issue', `${context.qualifier}:issue:${document.id}`);
       request.linkCollection('issue_comments', `${context.qualifier}:issue:${document.id}:issue_comments`);
+      request.linkCollection('issue_events', `${context.qualifier}:issue:${document.id}:issue_events`);
     }
     return document;
   }
@@ -355,6 +356,9 @@ class GitHubProcessor {
     if (document.comments_url && document.comments) {
       this._addCollection(request, 'issue_comments', 'issue_comment', document.comments_url);
     }
+    if (document.events_url) {
+      this._addCollection(request, 'issue_events', 'issue_event', document.events_url);
+    }
     if (document.pull_request) {
       this._addResource(request, 'pull_request', 'pull_request', document.id, document.pull_request.url, null, context.qualifier);
     }
@@ -375,6 +379,17 @@ class GitHubProcessor {
     request.addSelfLink();
     request.linkResource('issue', context.qualifier);
     request.linkSiblings(`${context.qualifier}:issue_comments`);
+
+    this._addRoot(request, 'user', 'user');
+    return document;
+  }
+
+  issue_event(request) {
+    const document = request.document;
+    const context = request.context;
+    request.addSelfLink();
+    request.linkResource('issue', context.qualifier);
+    request.linkSiblings(`${context.qualifier}:issue_events`);
 
     this._addRoot(request, 'user', 'user');
     return document;
@@ -483,6 +498,7 @@ class GitHubProcessor {
       deployment_status: 'DeploymentStatusEvent',
       issues: 'IssuesEvent',
       issue_comment: 'IssueCommentEvent',
+      issue_event: 'IssueEvent',
       label: 'LabelEvent',
       member: 'MemberEvent',
       membership: 'MembershipEvent',
@@ -821,7 +837,7 @@ class GitHubProcessor {
 
   isCollectionType(request) {
     const collections = new Set([
-      'collaborators', 'commit_comments', 'commits', 'contributors', 'events', 'issues', 'issue_comments', 'members', 'orgs', 'pull_request_commit_comments', 'pull_request_commits', 'repos', 'reviews', 'review_comments', 'subscribers', 'stargazers', 'statuses', 'teams'
+      'collaborators', 'commit_comments', 'commits', 'contributors', 'events', 'issues', 'issue_events', 'issue_comments', 'members', 'orgs', 'pull_request_commit_comments', 'pull_request_commits', 'repos', 'reviews', 'review_comments', 'subscribers', 'stargazers', 'statuses', 'teams'
     ]);
     return collections.has(request.type);
   }
